@@ -6,9 +6,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Document</title>
 		<style>
+			.page {
+				overflow-y: auto;
+			}
 			table,
 			td {
 				border: 1px solid #ccc;
+				font-size: 1rem;
 			}
 			table {
 				width: 100%;
@@ -35,6 +39,15 @@
 				transform: translateY(100%);
 				transition: none;
 			}
+			.page > .content {
+				opacity: 1;
+				transition: opacity 0.3s;
+			}
+			.page > .content.hide {
+				opacity: 0;
+				transition: none;
+			}
+
 			.page > .title {
 				margin: 0;
 				padding: 10px;
@@ -46,28 +59,113 @@
 	<body></body>
 	<script>
 		const products = [
-			{name: "반팔티", price: 15000, quantity: 1, selected: true},
-			{name: "긴팔티", price: 20000, quantity: 2, selected: false},
-			{name: "핸드폰케이스", price: 15000, quantity: 3, selected: true},
-			{name: "후드티", price: 30000, quantity: 4, selected: false},
-			{name: "바지", price: 25000, quantity: 5, selected: false},
-			{name: "반팔티", price: 15000, quantity: 1, selected: true},
-			{name: "긴팔티", price: 20000, quantity: 2, selected: false},
-			{name: "핸드폰케이스", price: 15000, quantity: 3, selected: true},
-			{name: "후드티", price: 30000, quantity: 4, selected: false},
-			{name: "바지", price: 25000, quantity: 5, selected: false},
-			{name: "반팔티", price: 15000, quantity: 1, selected: true},
-			{name: "긴팔티", price: 20000, quantity: 2, selected: false},
-			{name: "핸드폰케이스", price: 15000, quantity: 3, selected: true},
-			{name: "후드티", price: 30000, quantity: 4, selected: false},
-			{name: "바지", price: 25000, quantity: 5, selected: false},
+			{
+				name: '반팔티',
+				price: 15000,
+				quantity: 1,
+				selected: true,
+			},
+			{
+				name: '긴팔티',
+				price: 20000,
+				quantity: 2,
+				selected: false,
+			},
+			{
+				name: '핸드폰케이스',
+				price: 15000,
+				quantity: 3,
+				selected: true,
+			},
+			{
+				name: '후드티',
+				price: 30000,
+				quantity: 4,
+				selected: false,
+			},
+			{
+				name: '바지',
+				price: 25000,
+				quantity: 5,
+				selected: false,
+			},
+			{
+				name: '반팔티',
+				price: 15000,
+				quantity: 1,
+				selected: true,
+			},
+			{
+				name: '긴팔티',
+				price: 20000,
+				quantity: 2,
+				selected: false,
+			},
+			{
+				name: '핸드폰케이스',
+				price: 15000,
+				quantity: 3,
+				selected: true,
+			},
+			{
+				name: '후드티',
+				price: 30000,
+				quantity: 4,
+				selected: false,
+			},
+			{
+				name: '바지',
+				price: 25000,
+				quantity: 5,
+				selected: false,
+			},
+			{
+				name: '반팔티',
+				price: 15000,
+				quantity: 1,
+				selected: true,
+			},
+			{
+				name: '긴팔티',
+				price: 20000,
+				quantity: 2,
+				selected: false,
+			},
+			{
+				name: '핸드폰케이스',
+				price: 15000,
+				quantity: 3,
+				selected: true,
+			},
+			{
+				name: '후드티',
+				price: 30000,
+				quantity: 4,
+				selected: false,
+			},
+			{
+				name: '바지',
+				price: 25000,
+				quantity: 5,
+				selected: false,
+			},
 		];
 
 		const Product = {};
 		// db에서 가져오는 함수
+		const delay = (time, a) =>
+			new Promise((resolve) =>
+				setTimeout(() => {
+					console.log('call');
+					resolve(a);
+				}, time)
+			);
 		Product.list = () => products;
+		Product.list700 = () => delay(700, products);
+		Product.list1700 = () => delay(1700, products);
+		Product.list200 = () => delay(200, products);
 		Product.list.templ = (products) => `
-		  <table>
+		  <table class="table">
 				<tr>
 					<td>이름</td>
 					<td>가격</td>
@@ -83,47 +181,153 @@
 		            <td>${p.quantity}</td>
 		            <td>${p.quantity * p.price}</td>
 		          </tr>
-		        `,
+		        `
 					)
-					.join("")}
+					.join('')}
 			</table>
 		    `;
 		const el = (html) => {
-			const wrap = document.createElement("div");
+			const wrap = document.createElement('div');
 			wrap.innerHTML = html;
 			return wrap.children[0];
 		};
 		const $ = (sel, parent = document) => parent.querySelector(sel);
-		const append = (parent, child) => parent.appendChild(child);
-		const removeClass = (name, el) => (el.classList.remove(name), el);
-		const clear = (target) => ($(target) ? $(target).remove() : null);
+		const append = (parent, child) => (parent.appendChild(child), child);
+
+		const editClass = (method) => (name, el) => (
+			el.classList[method](name), el
+		);
+		const addClass = editClass('add');
+		const removeClass = editClass('remove');
+
+		const tap = (f) => (a, ...bs) => (f(a, ...bs), a);
+		const attachTo = tap(append);
+		const clear = (target) => ($(target) ? $(target).remove() : target);
 		// 비동기로 만들어야 동작이 가능/// -> 랜더링과 비동기 콜스택의 관계 다시한번 보자 브라우저의 동작원리
-		const show = (el) =>
+		const show1 = (el) => {
+			// 쇼를 해서 el변경 후 그대로 가지고 있는것이 아니고 el을 리턴으로 넘겨준다.
+
 			setTimeout(() => {
-				removeClass("hide", el);
+				removeClass('hide', el);
 			}, 0);
-		document.addEventListener("click", () => {
-			clear(".page");
-			openPage("상품 목록", Product.list, Product.list.templ);
-		});
+			return el;
+		};
+
+		const transitionEnd = (f) => (el) => {
+			return new Promise((resolve) => {
+				setTimeout(() => {
+					f(el);
+					el.addEventListener(
+						'transitionend',
+						() => {
+							console.log(el, 'end');
+							return resolve(el);
+						},
+						{ once: true }
+					);
+				}, 0);
+			});
+		};
+		const show = transitionEnd((el) => removeClass('hide', el));
 
 		// page 컴포넌트
 		// 랜더링하는 함수들이 한 콜스택에서 발생하면 머지하기때문에 의도한 동작이 나타나지 않는다...?
-		const openPage = (title, dataFn, templFn) => {
+		const openPage = async (title, dataFn, templFn) => {
 			// 파이프라인을 통과하듯이? 원하는 값을 만든다...?
 			show(
 				append(
-					$("body"),
+					$('body'),
 					el(`
-		    <div class="page hide">
-		      <h2 class="title">${title}</h2>
-		      <div class="content">${templFn(dataFn())}</div>
-		    </div>
-		    `),
-				),
+						<div class="page hide">
+							<h2 class="title">${title}</h2>
+							<div class="content">${templFn(await dataFn())}</div>
+							</div>
+							`)
+				)
+			);
+		};
+		const openPage2 = async (title, dataFn, templFn) => {
+			// 파이프라인을 통과하듯이? 원하는 값을 만든다...?
+			// await 사용하지 않고 즉시실행
+			const dataPromise = dataFn();
+			const page = show(
+				append(
+					$('body'),
+					el(`
+					<div class="page hide">
+						<h2 class="title">${title}</h2>
+						<div class="content"></div>
+						</div>
+						`)
+				)
+			);
+			append($('.content', page), el(templFn(await dataPromise)));
+		};
+		const openPage3 = async (title, dataFn, templFn) => {
+			// 파이프라인을 통과하듯이? 원하는 값을 만든다...?
+			// await 사용하지 않고 즉시실행
+			const dataP = dataFn();
+			// show가 끝나는 시점을 알아야한다. 근데 어떻게 알지?
+			const pageP = show(
+				append(
+					$('body'),
+					el(`
+					<div class="page hide">
+						<h2 class="title">${title}</h2>
+						<div class="content"></div>
+						</div>
+						`)
+				)
+			);
+			const [page, data] = await Promise.all([pageP, dataP]);
+			show(
+				tap(append)(
+					//
+					addClass('hide', $('.content', page)),
+					el(templFn(await data))
+				)
+			);
+		};
+		const openPage4 = async (title, dataFn, templFn) => {
+			// 파이프라인을 통과하듯이? 원하는 값을 만든다...?
+			// await 사용하지 않고 즉시실행
+			const dataP = dataFn();
+			// show가 끝나는 시점을 알아야한다. 근데 어떻게 알지?
+			const pageP = await show(
+				append(
+					$('body'),
+					el(`
+					<div class="page hide">
+						<h2 class="title">${title}</h2>
+						<div class="content"></div>
+						</div>
+						`)
+				)
+			);
+			show(
+				tap(append)(
+					//
+					addClass('hide', $('.content', pageP)),
+					el(`<div class="loading">Loading...</div>`)
+				)
+			);
+
+			const [page, data] = await Promise.all([pageP, dataP]);
+			clear('.loading');
+
+			show(
+				tap(append)(
+					//
+					addClass('hide', $('.content', page)),
+					el(templFn(data))
+				)
 			);
 		};
 		// 15분 20초에서 다시시작
 		// el을 받고 el을 다시 반환
+		document.addEventListener('click', () => {
+			clear('.page');
+			openPage4('상품 목록', Product.list1700, Product.list.templ);
+		});
 	</script>
 </html>
